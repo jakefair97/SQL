@@ -1,2 +1,2 @@
-# SQL
-SQL Portfolio
+# Jacob Fairweather's SQL Portfolio
+Welcome to my SQL portfolio! This code repository contains examples of SQL I've written. Feel free to take a look and reach out via email if you have any questions: jacobfairweather91@gmail.com
