@@ -1,0 +1,96 @@
+# This project was written using using Google BigQuery dialect. The data set can be found here: [text](https://www.kaggle.com/datasets/anadiskt/goldman-sachs-gs-stock-data-19992026)
+
+# The following queries were written to answer specific questions about the Goldman Sachs (GS) stock values from May 1999 - March 2026:
+
+1. How many days did GS close higher than it opened? What is the percentage? 
+
+SELECT 
+    COUNT(*) AS Days_Closed_Higher,
+    ROUND(COUNT(*) / (SELECT COUNT(*) FROM `g-sachs.fin_sheets.master_dataset`) * 100, 2) AS Pct_Of_Total
+FROM `g-sachs.fin_sheets.master_dataset`
+WHERE Close > Open;
+
+2. a. What were the 10 biggest single-day gains?
+
+SELECT 
+    DATE(Date) AS Date,
+    ROUND(Open, 2) AS Open,
+    ROUND(Close, 2) AS Close,
+    ROUND(Close - Open, 2) AS Daily_Gain
+FROM `g-sachs.fin_sheets.master_dataset`
+ORDER BY Daily_Gain DESC
+LIMIT 10;
+
+b. What were the 10 biggest single-day losses?
+
+SELECT 
+    DATE(Date) AS Date,
+    ROUND(Open, 2) AS Open,
+    ROUND(Close, 2) AS Close,
+    ROUND(Open - Close, 2) AS Daily_Loss
+FROM `g-sachs.fin_sheets.master_dataset`
+ORDER BY Daily_Loss DESC
+LIMIT 10
+
+3. a. What was the average closing price per quarter?
+
+SELECT 
+    EXTRACT(YEAR FROM DATE(Date)) AS Year,
+    CONCAT('Q', CAST(EXTRACT(QUARTER FROM DATE(Date)) AS STRING)) AS Quarter,
+    ROUND(AVG(Close), 2) AS Avg_Close
+FROM `g-sachs.fin_sheets.master_dataset`
+GROUP BY Year, Quarter
+ORDER BY Year, Quarter;
+
+b. What was the average trading volume per quarter?
+
+SELECT 
+    EXTRACT(YEAR FROM DATE(Date)) AS Year,
+    CONCAT('Q', CAST(EXTRACT(QUARTER FROM DATE(Date)) AS STRING)) AS Quarter,
+    ROUND(AVG(Volume)) AS Avg_Volume
+FROM `g-sachs.fin_sheets.master_dataset`
+GROUP BY Year, Quarter
+ORDER BY Year, Quarter;
+
+4. What was the Quarter-Over-Quarter price change?
+
+WITH quarterly_avg AS (
+    SELECT 
+        EXTRACT(YEAR FROM DATE(Date)) AS Year,
+        CONCAT('Q', CAST(EXTRACT(QUARTER FROM DATE(Date)) AS STRING)) AS Quarter,
+        ROUND(AVG(Close), 2) AS Avg_Close
+    FROM `g-sachs.fin_sheets.master_dataset`
+    GROUP BY Year, Quarter
+)
+SELECT 
+    Year,
+    Quarter,
+    Avg_Close,
+    ROUND(LAG(Avg_Close) OVER (ORDER BY Year, Quarter), 2) AS Prev_Quarter_Avg_Close,
+    ROUND((Avg_Close - LAG(Avg_Close) OVER (ORDER BY Year, Quarter)) 
+        / LAG(Avg_Close) OVER (ORDER BY Year, Quarter) * 100, 2) AS QoQ_Change_Pct
+FROM quarterly_avg
+ORDER BY Year, Quarter;
+
+5. What was the monthly average closing price during the 2008 financial crisis?
+
+SELECT 
+    FORMAT_DATE('%Y-%m', DATE(Date)) AS Month,
+    ROUND(AVG(Close), 2) AS Avg_Close,
+    ROUND(AVG(Volume), 0) AS Avg_Volume
+FROM `g-sachs.fin_sheets.master_dataset`
+WHERE DATE(Date) BETWEEN '2007-01-01' AND '2009-12-31'
+GROUP BY Month
+ORDER BY Month;
+
+6. What were the 10 highest volume trading days during the 2008 financial crisis?
+
+SELECT 
+    DATE(Date) AS Date,
+    ROUND(Close, 2) AS Close,
+    Volume,
+    ROUND(Close - Open, 2) AS Daily_Change
+FROM `g-sachs.fin_sheets.master_dataset`
+WHERE DATE(Date) BETWEEN '2008-01-01' AND '2009-06-30'
+ORDER BY Volume DESC
+LIMIT 10;
