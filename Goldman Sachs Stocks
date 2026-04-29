@@ -2,7 +2,7 @@
 
 # The following queries were written to answer specific questions about the Goldman Sachs (GS) stock values from May 1999 - March 2026:
 
-1. How many days did GS close higher than it opened? What is the percentage? 
+#1. How many days did GS close higher than it opened? What is the percentage? 
 
 SELECT 
     COUNT(*) AS Days_Closed_Higher,
@@ -10,7 +10,7 @@ SELECT
 FROM `g-sachs.fin_sheets.master_dataset`
 WHERE Close > Open;
 
-2. a. What were the 10 biggest single-day gains?
+#2. a. What were the 10 biggest single-day gains?
 
 SELECT 
     DATE(Date) AS Date,
@@ -32,7 +32,7 @@ FROM `g-sachs.fin_sheets.master_dataset`
 ORDER BY Daily_Loss DESC
 LIMIT 10
 
-3. a. What was the average closing price per quarter?
+#3. a. What was the average closing price per quarter?
 
 SELECT 
     EXTRACT(YEAR FROM DATE(Date)) AS Year,
@@ -52,7 +52,7 @@ FROM `g-sachs.fin_sheets.master_dataset`
 GROUP BY Year, Quarter
 ORDER BY Year, Quarter;
 
-4. What was the Quarter-Over-Quarter price change?
+#4. What was the Quarter-Over-Quarter price change of GS?
 
 WITH quarterly_avg AS (
     SELECT 
@@ -72,7 +72,7 @@ SELECT
 FROM quarterly_avg
 ORDER BY Year, Quarter;
 
-5. What was the monthly average closing price during the 2008 financial crisis?
+#5. What was the monthly average closing price during the 2008 financial crisis?
 
 SELECT 
     FORMAT_DATE('%Y-%m', DATE(Date)) AS Month,
@@ -83,7 +83,7 @@ WHERE DATE(Date) BETWEEN '2007-01-01' AND '2009-12-31'
 GROUP BY Month
 ORDER BY Month;
 
-6. What were the 10 highest volume trading days during the 2008 financial crisis?
+#6. What were the 10 highest volume trading days during the 2008 financial crisis?
 
 SELECT 
     DATE(Date) AS Date,
