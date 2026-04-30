@@ -1,0 +1,95 @@
+--For this project, I downloaded Spotify data from Kaggle.
+--Then I created a table to insert Spotify data into.
+--Finally, I performed analytics on the data using SQL. 
+
+--Create Spotify table
+CREATE TABLE TEST_DB.Spotifydata (
+id integer PRIMARY KEY,
+artist_name varchar NOT NULL,
+album_name varchar NOT NULL,
+track_name varchar NOT NULL,
+popularity integer NOT NULL,
+duration_ms integer NOT NULL,
+explicit boolean NOT NULL,
+danceability decimal(4,3) NOT NULL,
+energy decimal(4,3) NOT NULL,
+song_key integer NOT NULL,
+loudness decimal(5,3) NOT NULL,
+song_mode integer NOT NULL,
+speechiness decimal(5,4) NOT NULL,
+acousticness decimal(6,5) NOT NULL,
+instrumentalness decimal(8,7) NOT NULL,
+liveness decimal(5,4) NOT NULL,
+valence decimal(4,3) NOT NULL,
+tempo decimal(6,3) NOT NULL,
+time_signature integer NOT NULL,
+track_genre varchar NOT NULL );
+
+--Then I inserted the Spotify Data .csv into the table. (Kaggle dataset here: https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset)
+--Next, I explored the data using the following SQL.
+
+--First I determined the average popularity, danceability, and energy by artist and track. 
+SELECT artist_name, track_name, AVG(popularity), AVG(danceability), AVG(energy)
+FROM TEST_DB.spotifydata
+GROUP BY artist_name, track_name
+
+--Who are the top 10 artists based on popularity? 
+SELECT distinct popularity, artist_name, track_name
+FROM TEST_DB.spotifydata
+GROUP BY artist_name
+ORDER BY popularity DESC 
+LIMIT 10;
+
+--How many songs have another artist featured on them?
+SELECT COUNT(*)
+FROM TEST_DB.spotifydata
+WHERE (track_name LIKE '%feat%' OR track_name LIKE '%ft%' OR track_name LIKE 'with%');
+
+--What is the average loudness of the songs?
+SELECT AVG(loudness) AS avg_loudness
+FROM TEST_DB.spotifydata;
+
+--Examine the top ten songs in relation to the loudness average
+SELECT track_name, loudness,
+CASE WHEN loudness < -5.904 THEN "Below average"
+WHEN loudness = -5.904 THEN "Average"
+WHEN loudness > -5.904 THEN "Above average"
+END AS compare_avg
+FROM TEST_DB.spotifydata
+LIMIT 10;
+
+--What is the average length of songs?
+SELECT AVG(duration_ms) AS avg_duration
+FROM TEST_DB.spotifydata;
+
+--How do the top 10 songs compare to the average duration?
+SELECT track_name, duration_ms, CASE
+WHEN duration_ms <197488.4 THEN "Below average"
+WHEN duration_ms =197488.4 THEN "Average"
+WHEN duration_ms >197488.4 THEN "Above average"
+END AS compare_avg
+FROM TEST_DB.spotifydata
+LIMIT 10;
+
+--Count the number of top songs by each artist
+SELECT artist_name, COUNT(*)
+FROM TEST_DB.spotifydata
+GROUP BY artist_name
+ORDER BY COUNT(*) DESC;
+
+--What artist released the longest song and what was the song title?
+SELECT artist_name, track_name, duration_ms
+FROM TEST_DB.spotifydata
+ORDER BY duration_ms DESC
+LIMIT 1;
+
+--Calculate the average popularity for the artists in the Spotify data table. Then, for every artist with an average popularity of 90 or above, show their name, their average popularity, and label them as a “Top Star”.
+WITH popularity_average_CTE AS (
+SELECT artist_name, 
+AVG(popularity) AS average_popularity
+FROM TEST_DB.spotifydata
+GROUP BY artist_name
+)
+SELECT artist_name, average_popularity, 'Top Star' AS tag
+FROM popularity_average_CTE
+WHERE average_popularity>=90;
